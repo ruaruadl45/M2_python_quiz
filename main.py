@@ -1,3 +1,4 @@
+# Quiz Game
 def get_valid_number(prompt, min_value, max_value):
     while True:
         value = input(prompt).strip()
@@ -13,32 +14,7 @@ def get_valid_number(prompt, min_value, max_value):
         except ValueError:
             print("숫자만 입력할 수 있습니다.")
 
-
-try:
-    print("===== 파이썬 퀴즈 게임 =====")
-    print()
-    print("1. 퀴즈 풀기")
-    print("2. 퀴즈 추가")
-    print("3. 퀴즈 목록 보기")
-    print("4. 최고 점수 확인")
-    print("5. 종료")
-    print()
-    print("※ Ctrl+C를 누르면 프로그램을 종료할 수 있습니다.")
-    print()
-
-    choice = get_valid_number("원하는 메뉴 번호를 선택하세요: ", 1, 5)
-
-    if choice == 5:
-        print("프로그램을 종료합니다.")
-    else:
-        print("선택한 번호:", choice)
-
-except KeyboardInterrupt:
-    print("\n사용자 요청으로 프로그램을 종료합니다.")
-
-except EOFError:
-    print("\n입력이 종료되어 프로그램을 종료합니다.")
-
+# Quiz class
 class Quiz:
     def __init__(self, question, choices, answer):
         self.question = question
@@ -54,7 +30,7 @@ class Quiz:
     def check_answer(self, user_answer):
         return self.answer == user_answer
 
-
+# Quiz data
 quizzes = [
     Quiz(
         "조선시대부터 불리던 대전의 옛 이름으로, '큰밭'이라는 순우리말에서 유래한 지명은 무엇인가요?",
@@ -82,3 +58,58 @@ quizzes = [
         2
     )
 ]
+
+# Quiz game function
+def play_quiz(quizzes):
+    correct_count = 0
+
+    for quiz in quizzes:
+        print()
+        quiz.display()
+        print()
+
+        user_answer = get_valid_number(
+            "정답 번호를 입력하세요: ", 1, 4
+        )
+
+        if quiz.check_answer(user_answer):
+            print("정답입니다!")
+            correct_count += 1
+        else:
+            print("오답입니다.")
+
+    print()
+    print(f"총 {len(quizzes)}문제 중 {correct_count}문제 정답입니다!")
+
+    return correct_count
+
+
+#Main program
+try:
+    print("===== 파이썬 퀴즈 게임 =====")
+    print()
+    print("1. 퀴즈 풀기")
+    print("2. 퀴즈 추가")
+    print("3. 퀴즈 목록 보기")
+    print("4. 최고 점수 확인")
+    print("5. 종료")
+    print()
+    print("※ Ctrl+C를 누르면 프로그램을 종료할 수 있습니다.")
+    print()
+
+    choice = get_valid_number("원하는 메뉴 번호를 선택하세요: ", 1, 5)
+
+    if choice == 5:
+        print("프로그램을 종료합니다.")
+
+    elif choice == 1:
+        play_quiz(quizzes)
+
+    else:
+        print("선택한 번호:", choice)
+
+except KeyboardInterrupt:
+    print("\n사용자 요청으로 프로그램을 종료합니다.")
+
+except EOFError:
+    print("\n입력이 종료되어 프로그램을 종료합니다.")
