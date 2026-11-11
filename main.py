@@ -30,6 +30,11 @@ class Quiz:
     def check_answer(self, user_answer):
         return self.answer == user_answer
 
+
+# Best score
+best_score = 0
+
+
 # Quiz data
 quizzes = [
     Quiz(
@@ -61,6 +66,8 @@ quizzes = [
 
 # Quiz game function
 def play_quiz(quizzes):
+    global best_score
+
     correct_count = 0
 
     for quiz in quizzes:
@@ -79,7 +86,23 @@ def play_quiz(quizzes):
             print("오답입니다.")
 
     print()
-    print(f"총 {len(quizzes)}문제 중 {correct_count}문제 정답입니다!")
+
+    total_count = len(quizzes)
+
+    if total_count == 0:
+        print("등록된 퀴즈가 없습니다.")
+        return 0
+
+    score = int(correct_count / total_count * 100 + 0.5)
+
+    print(
+        f"이번 점수: {score}점 "
+        f"({total_count}문제 중 {correct_count}문제 정답입니다!)"
+    )
+
+    if score > best_score:
+        best_score = score
+        print("축하합니다! 최고 점수가 갱신되었습니다!")
 
     return correct_count
 
@@ -116,6 +139,12 @@ def show_quizzes(quizzes):
     print(f"\n총 {len(quizzes)}개의 퀴즈가 있습니다.")
 
 
+# Best score function
+def show_best_score():
+    print(f"\n현재 최고 점수: {best_score}점")
+
+
+
 # Main program
 try:
     while True:
@@ -146,7 +175,7 @@ try:
             show_quizzes(quizzes)
 
         elif choice == 4:
-            print("최고 점수 기능은 아직 구현되지 않았습니다.")
+            show_best_score()
 
 except KeyboardInterrupt:
     print("\n사용자 요청으로 프로그램을 종료합니다.")
