@@ -84,29 +84,69 @@ def play_quiz(quizzes):
     return correct_count
 
 
-#Main program
+# Add quiz function
+def add_quiz(quizzes):
+    question = input("새로운 퀴즈 질문을 입력하세요: ")
+    print("입력한 질문:", question)
+
+
+    choices = []
+
+    for i in range(1, 5):
+        choice = input(f"{i}번 보기 입력: ")
+        choices.append(choice)
+
+    print("입력한 보기:", choices)
+
+    answer = get_valid_number("정답 번호를 입력하세요 (1~4): ", 1, 4)
+    print("입력한 정답:", answer)
+
+    new_quiz = Quiz(question, choices, answer)
+    quizzes.append(new_quiz)
+    print("새로운 퀴즈가 생성되었습니다!")
+
+
+# Quiz list function
+def show_quizzes(quizzes):
+    print("\n===== 퀴즈 목록 =====")
+
+    for i, quiz in enumerate(quizzes, start=1):
+        print(f"{i}. {quiz.question}")
+
+    print(f"\n총 {len(quizzes)}개의 퀴즈가 있습니다.")
+
+
+# Main program
 try:
-    print("===== 파이썬 퀴즈 게임 =====")
-    print()
-    print("1. 퀴즈 풀기")
-    print("2. 퀴즈 추가")
-    print("3. 퀴즈 목록 보기")
-    print("4. 최고 점수 확인")
-    print("5. 종료")
-    print()
-    print("※ Ctrl+C를 누르면 프로그램을 종료할 수 있습니다.")
-    print()
+    while True:
+        print("\n===== 파이썬 퀴즈 게임 =====")
+        print()
+        print("1. 퀴즈 풀기")
+        print("2. 퀴즈 추가")
+        print("3. 퀴즈 목록 보기")
+        print("4. 최고 점수 확인")
+        print("5. 종료")
+        print()
+        print("※ Ctrl+C를 누르면 프로그램을 종료할 수 있습니다.")
+        print()
 
-    choice = get_valid_number("원하는 메뉴 번호를 선택하세요: ", 1, 5)
+        choice = get_valid_number("원하는 메뉴 번호를 선택하세요: ", 1, 5)
 
-    if choice == 5:
-        print("프로그램을 종료합니다.")
+        if choice == 5:
+            print("프로그램을 종료합니다.")
+            break
 
-    elif choice == 1:
-        play_quiz(quizzes)
+        elif choice == 1:
+            play_quiz(quizzes)
 
-    else:
-        print("선택한 번호:", choice)
+        elif choice == 2:
+            add_quiz(quizzes)
+
+        elif choice == 3:
+            show_quizzes(quizzes)
+
+        elif choice == 4:
+            print("최고 점수 기능은 아직 구현되지 않았습니다.")
 
 except KeyboardInterrupt:
     print("\n사용자 요청으로 프로그램을 종료합니다.")
