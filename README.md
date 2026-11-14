@@ -573,7 +573,7 @@ Git을 이용해 프로젝트 변경 사항을 기록하고 GitHub 원격 저장
 | `git checkout` | 브랜치 이동 |
 | `git clone` | 원격 저장소 복제 |
 
-※ Clone/Pull 실습 과정은 [4) Clone 및 Pull 실습](#4-clone-및-pull-실습)에 정리했습니다.
+※ Clone/Pull 실습 과정은 [4) Clone 및 Pull 실습](#4-clone-및-pull-실습), Init 실습 과정은 [5) Init 실습](#5-init-실습)에 정리했습니다.
 
 #### 2) 브랜치 생성 및 병합
 
@@ -679,7 +679,42 @@ git log --oneline -3
 - Pull 후: 같은 줄이 `M2_clone_test 폴더에 복제해 실습`으로 바뀐 것을 확인
 - `git log`에서 최신 커밋이 `4429076 Docs: clone 실습 기록 추가`로 복제본과 일치함을 확인
 
-#### 5) Git 작업 이력 확인
+#### 5) Init 실습
+
+이 프로젝트 저장소는 GitHub에서 먼저 만든 뒤 `clone`으로 작업 폴더를 준비했기 때문에, `git init`은 사용하지 않았습니다. 그래서 미션 파일이 전혀 없는 별도 환경(Docker 컨테이너 `quiz-pc`, Python 3.13·Git 2.47 설치)을 만들어 빈 폴더를 Git 저장소로 초기화하는 과정을 따로 실습했습니다.
+
+**실행 명령어**
+
+```bash
+docker exec -it quiz-pc bash        # 별도 환경(컨테이너) 접속
+cd /root && ls                      # 미션 파일이 없는 상태 확인
+mkdir quiz_init_test && cd quiz_init_test
+git init -b main                    # 빈 폴더를 Git 저장소로 초기화
+git remote add origin https://github.com/ruaruadl45/M2_python_quiz.git
+git remote -v                       # 원격 저장소 연결 확인
+git pull origin main                # 원격 저장소의 main 브랜치 내려받기
+ls && git log --oneline -3
+python main.py
+```
+
+![별도 환경에서 git init 후 원격 저장소 연결 및 Pull](docs/screenshots/21_git_init.png)
+
+**확인 내용**
+- 실습 전 `ls` 결과가 비어 있어 미션 파일이 없는 환경임을 확인
+- `git init -b main` 결과 `Initialized empty Git repository`로 빈 저장소 생성 확인
+- `git remote -v`로 `origin`(fetch/push) 연결 확인
+- `git pull origin main`으로 `README.md`, `docs`, `main.py`, `state.json`을 내려받고, 최신 커밋 `6c4c3df`가 GitHub와 일치함을 확인
+- 내려받은 `main.py`를 실행해 저장된 데이터를 불러오고 정상 종료됨을 확인
+
+**`clone`과 `init`의 차이**
+
+| 구분 | `git clone` | `git init` + `remote add` + `pull` |
+| --- | --- | --- |
+| 시작점 | 원격 저장소 | 빈 폴더 |
+| 원격 연결 | 자동으로 `origin` 등록 | `git remote add`로 직접 등록 |
+| 사용하는 상황 | 이미 있는 저장소를 받아 작업할 때 | 내 폴더를 새로 Git 저장소로 만들 때 |
+
+#### 6) Git 작업 이력 확인
 
 **실행 명령어**
 
@@ -820,7 +855,7 @@ Git은 코드와 문서의 변경 이력을 기록하고 관리하는 버전 관
 
 | 명령어 | 하는 일 | 이번 미션에서 사용한 위치/상황 |
 | --- | --- | --- |
-| `init` | 현재 폴더를 Git 저장소로 초기화 | 미션 프로젝트를 처음 Git으로 관리할 때 |
+| `init` | 현재 폴더를 Git 저장소로 초기화 | 미션 파일이 없는 별도 환경(Docker 컨테이너)의 빈 폴더를 저장소로 만든 뒤 원격 저장소와 연결 ([21](docs/screenshots/21_git_init.png) 화면) |
 | `add` | 변경된 파일을 커밋할 대상으로 지정 | `main.py`, `state.json`을 커밋하기 전 추가 |
 | `commit` | 변경 내용을 하나의 작업 기록으로 저장 | 기능 구현 및 수정 내용을 기록할 때 |
 | `push` | 로컬 저장소의 커밋을 원격 저장소에 업로드 | 기능 브랜치와 `main` 브랜치의 변경 내용을 GitHub에 업로드 |
@@ -828,7 +863,9 @@ Git은 코드와 문서의 변경 이력을 기록하고 관리하는 버전 관
 | `checkout` | 브랜치를 전환하거나 특정 작업 상태로 이동 | `main`과 `feature/json-persistence` 브랜치 전환 |
 | `clone` | 원격 저장소 전체를 로컬 컴퓨터에 복사 | M2_clone_test 폴더에 복제해 실습 |
 
-※ `clone`과 `pull`의 실제 실행 과정은 [7-5의 Clone 및 Pull 실습](#4-clone-및-pull-실습)에서 확인할 수 있습니다.
+※ `clone`과 `pull`의 실제 실행 과정은 [7-5의 Clone 및 Pull 실습](#4-clone-및-pull-실습), `init`의 실행 과정은 [7-5의 Init 실습](#5-init-실습)에서 확인할 수 있습니다.
+
+※ 이 프로젝트 저장소는 GitHub에서 먼저 생성한 뒤 `clone`으로 작업 폴더를 만들었기 때문에, `init`은 별도 환경에서 따로 실습했습니다.
 
 **3. 브랜치를 나눠 작업한 이유**
 
