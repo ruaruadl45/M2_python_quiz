@@ -218,3 +218,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# 실습용 임시 백업 및 테스트 파일
+state_backup.json
+state_temp.json
