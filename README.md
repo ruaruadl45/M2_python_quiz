@@ -78,7 +78,7 @@ Git으로 기능별 변경 이력을 기록하고 GitHub 저장소에 코드를 
 - [x] **QuizGame 클래스**: 게임 전체 관리 및 기능별 메서드 분리
 - [x] **state.json 저장/불러오기**: 파일 없음·손상·읽기/쓰기 오류 처리 로직 구현 및 파일 없음·손상 상황 테스트
 - [x] **README.md 작성 및 실제 실행 결과 반영**
-- [ ] **Git 복제 실습**: clone → 복제본 수정 → commit → push → 원래 폴더에서 pull → 반영 확인
+- [x] **Git 복제 실습**: clone → 복제본 수정 → commit → push → 원래 폴더에서 pull → 반영 확인
 - [x] **제출물**: GitHub 저장소 URL, 개발환경 스크린샷, 실행 결과 스크린샷, `git log --oneline --graph` 스크린샷
 
 ### 1-4. GitHub 저장소 정보
@@ -500,10 +500,36 @@ python main.py
 ```
 
 <details>
-<summary>JSON 저장 및 복구 실습 로그 확인하기</summary>
+<summary>손상 복구 및 백업 복원 실습 로그 확인하기</summary>
+
+※ 반복되는 메뉴 출력과 퀴즈 목록 일부는 생략했으며, 프롬프트 경로(`PS C:\Users\ruaru\M2_python_quiz>`)는 `PS>`로 줄여 표기했습니다.
 
 ```text
-여기에 실제 실행 로그를 붙여넣기
+PS> Set-Content state.json "{ 잘못된 JSON 데이터 }" -Encoding UTF8
+PS> Get-Content state.json -Encoding UTF8
+{ 잘못된 JSON 데이터 }
+PS> python main.py
+저장 데이터에 문제가 있습니다: Unexpected UTF-8 BOM (decode using utf-8-sig): line 1 column 1 (char 0)
+기본 퀴즈 데이터로 복구합니다.
+게임 데이터가 저장되었습니다.
+... (메뉴 출력 생략) ...
+원하는 메뉴 번호를 선택하세요: 3
+... (기본 퀴즈 1~5번 목록 생략) ...
+총 5개의 퀴즈가 있습니다.
+원하는 메뉴 번호를 선택하세요: 4
+현재 최고 점수: 0점
+원하는 메뉴 번호를 선택하세요: 5
+프로그램을 종료합니다.
+
+PS> Copy-Item state_backup.json state.json -Force
+PS> python main.py
+저장된 게임 데이터를 불러왔습니다.
+원하는 메뉴 번호를 선택하세요: 3
+... (기본 퀴즈 1~5번 목록 생략) ...
+6. 대전의 유명 베이커리 '성심당'의 대표 메뉴로, ... 이 빵의 이름은 무엇인가요?
+총 6개의 퀴즈가 있습니다.
+원하는 메뉴 번호를 선택하세요: 4
+현재 최고 점수: 67점
 ```
 </details>
 
@@ -547,7 +573,7 @@ Git을 이용해 프로젝트 변경 사항을 기록하고 GitHub 원격 저장
 | `git checkout` | 브랜치 이동 |
 | `git clone` | 원격 저장소 복제 |
 
-※ Clone/Pull은 별도 실습을 완료한 후 실제 실행 결과를 반영합니다.
+※ Clone/Pull 실습 과정은 [4) Clone 및 Pull 실습](#4-clone-및-pull-실습)에 정리했습니다.
 
 #### 2) 브랜치 생성 및 병합
 
@@ -591,7 +617,69 @@ git push origin main
 | 구조 개선 | QuizGame 클래스로 게임 기능 통합 |
 | 데이터 관리 | JSON 파일을 이용한 퀴즈 및 최고 점수 저장 |
 
-#### 4) Git 작업 이력 확인
+#### 4) Clone 및 Pull 실습
+
+다른 컴퓨터에서 저장소를 처음 내려받아 작업하는 상황을 가정하여, 같은 PC의 별도 폴더(`C:\Users\ruaru\M2_clone_test`)에 저장소를 복제했습니다. 복제본에서 수정한 내용을 GitHub에 Push한 뒤, 원래 작업 폴더에서 Pull하여 변경 사항이 반영되는지 확인했습니다.
+
+| 구분 | 경로 | 역할 |
+| --- | --- | --- |
+| 원래 폴더 | `C:\Users\ruaru\M2_python_quiz` | 기존 미션 작업 폴더 |
+| 복제본 폴더 | `C:\Users\ruaru\M2_clone_test\M2_python_quiz` | `git clone`으로 새로 내려받은 폴더 |
+
+![원래 폴더와 복제본 폴더](docs/screenshots/clone_folder.png)
+
+**① 복제본 만들기 및 실행 (Clone → Pull → 실행)**
+
+```powershell
+cd C:\Users\ruaru
+mkdir M2_clone_test
+cd M2_clone_test
+git clone https://github.com/ruaruadl45/M2_python_quiz.git
+cd M2_python_quiz
+git pull origin main
+python main.py
+```
+
+![새 폴더에 저장소 Clone 후 프로그램 실행](docs/screenshots/18_clone.png)
+
+- `git clone`으로 원격 저장소의 파일과 커밋 이력 전체를 내려받음
+- 복제 직후 `git pull` 결과 `Already up to date.`로 원격 저장소와 같은 상태임을 확인
+- 복제본에서 `python main.py` 실행 시 저장된 데이터를 불러오고 정상 종료됨을 확인
+
+**② 복제본에서 수정 후 Push (수정 → add → commit → push)**
+
+```powershell
+notepad README.md
+git status
+git add README.md
+git commit -m "Docs: clone 실습 기록 추가"
+git push origin main
+```
+
+![복제본에서 README 수정 후 Commit 및 Push](docs/screenshots/19_clone_push.png)
+
+- 복제본의 `README.md`에서 [8-2](#8-2-git-기초-필수-명령어-7종) `clone` 항목을 `별도 실습 예정` → `M2_clone_test 폴더에 복제해 실습`으로 수정
+- `git status`로 수정된 파일을 확인한 뒤 `git add`, `git commit` 실행 (`4429076`)
+- `git push` 결과 `354c750..4429076 main -> main`으로 GitHub에 반영됨을 확인
+
+**③ 원래 폴더에서 Pull 후 반영 확인**
+
+```powershell
+cd C:\Users\ruaru\M2_python_quiz
+Select-String README.md -Pattern "별도 실습 예정|복제해 실습"
+git pull origin main
+Select-String README.md -Pattern "별도 실습 예정|복제해 실습"
+git log --oneline -3
+```
+
+![원래 폴더에서 Pull 후 변경 내용 반영 확인](docs/screenshots/20_pull.png)
+
+- Pull 전: 원래 폴더의 `README.md`는 `별도 실습 예정` 상태
+- `git pull` 결과 `Updating 354c750..4429076`, `Fast-forward`로 복제본의 변경 사항을 내려받음
+- Pull 후: 같은 줄이 `M2_clone_test 폴더에 복제해 실습`으로 바뀐 것을 확인
+- `git log`에서 최신 커밋이 `4429076 Docs: clone 실습 기록 추가`로 복제본과 일치함을 확인
+
+#### 5) Git 작업 이력 확인
 
 **실행 명령어**
 
@@ -740,7 +828,7 @@ Git은 코드와 문서의 변경 이력을 기록하고 관리하는 버전 관
 | `checkout` | 브랜치를 전환하거나 특정 작업 상태로 이동 | `main`과 `feature/json-persistence` 브랜치 전환 |
 | `clone` | 원격 저장소 전체를 로컬 컴퓨터에 복사 | M2_clone_test 폴더에 복제해 실습 |
 
-※ `clone`은 필수 명령어이므로 별도 실습을 진행한 뒤 실제 실행 결과를 추가합니다.
+※ `clone`과 `pull`의 실제 실행 과정은 [7-5의 Clone 및 Pull 실습](#4-clone-및-pull-실습)에서 확인할 수 있습니다.
 
 **3. 브랜치를 나눠 작업한 이유**
 

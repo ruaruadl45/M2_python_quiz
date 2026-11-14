@@ -222,3 +222,4 @@ __marimo__/
 # 실습용 임시 백업 및 테스트 파일
 state_backup.json
 state_temp.json
+docs/screenshots/Error_test_for_json.txt
