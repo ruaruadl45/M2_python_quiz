@@ -2,6 +2,7 @@
 # Quiz Game
 
 import json
+import random
 from pathlib import Path
 
 
@@ -213,7 +214,10 @@ class QuizGame:
 
         correct_count = 0
 
-        for quiz in self.quizzes:
+        # 퀴즈 순서를 랜덤하게 섞기
+        shuffled_quizzes = random.sample(self.quizzes, len(self.quizzes))
+
+        for quiz in shuffled_quizzes:
             print()
             quiz.display()
             print()
