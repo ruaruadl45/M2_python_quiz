@@ -76,7 +76,7 @@ class QuizGame:
         return int(correct_count / total_count * 100 + 0.5)
 
     # JSON 파일 저장
-    def save_state(self):
+    def save_state(self, show_message=True):
         data = {
             "best_score": self.best_score,
             "quizzes": [
@@ -94,7 +94,8 @@ class QuizGame:
             with self.state_file.open("w", encoding="utf-8") as file:
                 json.dump(data, file, ensure_ascii=False, indent=4)
 
-            print("게임 데이터가 저장되었습니다.")
+            if show_message:
+                print("게임 데이터가 저장되었습니다.")
 
         except OSError as error:
             print(f"데이터 저장 중 오류가 발생했습니다: {error}")
@@ -264,7 +265,11 @@ class QuizGame:
 
     # 퀴즈 추가
     def add_quiz(self):
-        question = get_valid_text("새로운 퀴즈 질문을 입력하세요: ")
+        question = get_valid_text("새로운 퀴즈 질문을 입력하세요 (취소: 0): ")
+
+        if question == "0":
+            print("퀴즈 추가를 취소했습니다.")
+            return
 
         choices = []
 
@@ -278,21 +283,11 @@ class QuizGame:
 
         hint = input("힌트를 입력하세요 (없으면 Enter): ").strip()
 
-        print("\n===== 입력 내용 확인 =====")
-        print("질문:", question)
-
-        for i, choice in enumerate(choices, start=1):
-            print(f"{i}번 보기: {choice}")
-
-        print("입력한 정답 번호:", answer)
-        print("정답 내용:", choices[answer - 1])
-        print("힌트:", hint if hint else "(없음)")
-
         new_quiz = Quiz(question, choices, answer, hint)
         self.quizzes.append(new_quiz)
 
-        print("\n새로운 퀴즈가 생성되었습니다!")
-        self.save_state()
+        self.save_state(show_message=False)
+        print("\n새로운 퀴즈가 추가되어 저장되었습니다!")
 
     # 퀴즈 목록
     def show_quizzes(self):
@@ -302,6 +297,29 @@ class QuizGame:
             print(f"{i}. {quiz.question}")
 
         print(f"\n총 {len(self.quizzes)}개의 퀴즈가 있습니다.")
+
+    # 퀴즈 삭제
+    def delete_quiz(self):
+        if not self.quizzes:
+            print("\n삭제할 퀴즈가 없습니다.")
+            return
+
+        self.show_quizzes()
+
+        quiz_number = get_valid_number(
+            f"\n삭제할 퀴즈 번호를 입력하세요 (1~{len(self.quizzes)}, 취소: 0): ",
+            0, len(self.quizzes)
+        )
+
+        if quiz_number == 0:
+            print("삭제를 취소했습니다.")
+            return
+
+        deleted_quiz = self.quizzes.pop(quiz_number - 1)
+
+        print(f"\n{quiz_number}번 퀴즈가 삭제되었습니다.")
+        print(f"삭제된 퀴즈: {deleted_quiz.question}")
+        self.save_state()
 
     # 최고 점수 확인
     def show_best_score(self):
@@ -317,16 +335,17 @@ class QuizGame:
                 print("2. 퀴즈 추가")
                 print("3. 퀴즈 목록 보기")
                 print("4. 최고 점수 확인")
-                print("5. 종료")
+                print("5. 퀴즈 삭제")
+                print("6. 종료")
                 print()
                 print("※ Ctrl+C를 누르면 프로그램을 종료할 수 있습니다.")
                 print()
 
                 choice = get_valid_number(
-                    "원하는 메뉴 번호를 선택하세요: ", 1, 5
+                    "원하는 메뉴 번호를 선택하세요: ", 1, 6
                 )
 
-                if choice == 5:
+                if choice == 6:
                     print("프로그램을 종료합니다.")
                     break
 
@@ -341,6 +360,9 @@ class QuizGame:
 
                 elif choice == 4:
                     self.show_best_score()
+
+                elif choice == 5:
+                    self.delete_quiz()
 
         except KeyboardInterrupt:
             print("\n사용자 요청으로 프로그램을 종료합니다.")
