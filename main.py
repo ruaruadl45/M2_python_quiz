@@ -3,6 +3,7 @@
 
 import json
 import random
+from datetime import datetime
 from pathlib import Path
 
 
@@ -63,6 +64,8 @@ class QuizGame:
     def __init__(self):
         self.state_file = Path(__file__).with_name("state.json")
         self.best_score = 0
+        self.best_question_count = 0
+        self.history = []
 
         self.quizzes = self.get_default_quizzes()
 
@@ -79,6 +82,7 @@ class QuizGame:
     def save_state(self, show_message=True):
         data = {
             "best_score": self.best_score,
+            "best_question_count": self.best_question_count,
             "quizzes": [
                 {
                     "question": quiz.question,
@@ -87,7 +91,8 @@ class QuizGame:
                     "hint": quiz.hint
                 }
                 for quiz in self.quizzes
-            ]
+            ],
+            "history": self.history
         }
 
         try:
@@ -120,8 +125,26 @@ class QuizGame:
             if type(best_score) is not int or not 0 <= best_score <= 100:
                 raise ValueError("최고 점수 데이터가 올바르지 않습니다.")
 
+            best_question_count = data.get("best_question_count", 0)
+
+            if type(best_question_count) is not int or best_question_count < 0:
+                raise ValueError("최고 점수 문제 수 데이터가 올바르지 않습니다.")
+
             if not isinstance(quiz_data, list):
                 raise ValueError("퀴즈 목록 형식이 올바르지 않습니다.")
+
+            history = data.get("history", [])
+
+            if not isinstance(history, list) or not all(
+                isinstance(record, dict)
+                and isinstance(record.get("date"), str)
+                and type(record.get("question_count")) is int
+                and type(record.get("correct_count")) is int
+                and type(record.get("hint_count")) is int
+                and type(record.get("score")) is int
+                for record in history
+            ):
+                raise ValueError("점수 기록 데이터 형식이 올바르지 않습니다.")
 
             loaded_quizzes = []
 
@@ -149,7 +172,9 @@ class QuizGame:
                 loaded_quizzes.append(Quiz(question, choices, answer, hint))
 
             self.best_score = best_score
+            self.best_question_count = best_question_count
             self.quizzes = loaded_quizzes
+            self.history = history
 
             print("저장된 게임 데이터를 불러왔습니다.")
 
@@ -158,7 +183,9 @@ class QuizGame:
             print("기본 퀴즈 데이터로 복구합니다.")
 
             self.best_score = 0
+            self.best_question_count = 0
             self.quizzes = self.get_default_quizzes()
+            self.history = []
             self.save_state()
 
     # 기본 퀴즈 데이터
@@ -258,10 +285,29 @@ class QuizGame:
         if hint_count > 0:
             print(f"힌트 사용: {hint_count}회 (-{penalty}점)")
 
-        if score > self.best_score:
+        # 이번 게임 기록 추가
+        self.history.append({
+            "date": datetime.now().strftime("%Y-%m-%d %H:%M"),
+            "question_count": total_count,
+            "correct_count": correct_count,
+            "hint_count": hint_count,
+            "score": score
+        })
+
+        # 최고 점수 갱신: 전체 문제를 푼 판만 인정, 동점이면 더 많이 푼 기록 우선
+        if question_count < quiz_total:
+            print(f"※ 전체 문제({quiz_total}문제)를 풀어야 최고 점수에 반영됩니다.")
+
+        elif score > self.best_score or (
+            score == self.best_score
+            and question_count > self.best_question_count
+        ):
             self.best_score = score
+            self.best_question_count = question_count
             print("축하합니다! 최고 점수가 갱신되었습니다!")
-            self.save_state()
+
+        self.save_state(show_message=False)
+        print("이번 게임 기록이 저장되었습니다.")
 
     # 퀴즈 추가
     def add_quiz(self):
@@ -321,9 +367,30 @@ class QuizGame:
         print(f"삭제된 퀴즈: {deleted_quiz.question}")
         self.save_state()
 
-    # 최고 점수 확인
-    def show_best_score(self):
-        print(f"\n현재 최고 점수: {self.best_score}점")
+    # 최고 점수 및 점수 기록 확인
+    def show_scores(self):
+        if self.best_question_count > 0:
+            print(
+                f"\n현재 최고 점수: {self.best_score}점 "
+                f"({self.best_question_count}문제)"
+            )
+        else:
+            print(f"\n현재 최고 점수: {self.best_score}점")
+
+        print("\n===== 점수 기록 =====")
+
+        if not self.history:
+            print("아직 게임 기록이 없습니다.")
+            return
+
+        for i, record in enumerate(self.history, start=1):
+            print(
+                f"{i}. {record['date']} | "
+                f"{record['question_count']}문제 중 {record['correct_count']}문제 정답 | "
+                f"힌트 {record['hint_count']}회 | {record['score']}점"
+            )
+
+        print(f"\n총 {len(self.history)}개의 기록이 있습니다.")
 
     # 메인 메뉴
     def run(self):
@@ -334,7 +401,7 @@ class QuizGame:
                 print("1. 퀴즈 풀기")
                 print("2. 퀴즈 추가")
                 print("3. 퀴즈 목록 보기")
-                print("4. 최고 점수 확인")
+                print("4. 점수 확인 (최고 점수·기록)")
                 print("5. 퀴즈 삭제")
                 print("6. 종료")
                 print()
@@ -359,7 +426,7 @@ class QuizGame:
                     self.show_quizzes()
 
                 elif choice == 4:
-                    self.show_best_score()
+                    self.show_scores()
 
                 elif choice == 5:
                     self.delete_quiz()
