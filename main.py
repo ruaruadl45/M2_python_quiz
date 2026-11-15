@@ -212,10 +212,16 @@ class QuizGame:
             print("등록된 퀴즈가 없습니다.")
             return
 
+        # 풀 문제 수 선택
+        quiz_total = len(self.quizzes)
+        question_count = get_valid_number(
+            f"몇 문제를 풀까요? (1~{quiz_total}): ", 1, quiz_total
+        )
+
         correct_count = 0
 
         # 퀴즈 순서를 랜덤하게 섞기
-        shuffled_quizzes = random.sample(self.quizzes, len(self.quizzes))
+        shuffled_quizzes = random.sample(self.quizzes, question_count)
 
         for quiz in shuffled_quizzes:
             print()
@@ -234,7 +240,7 @@ class QuizGame:
 
         print()
 
-        total_count = len(self.quizzes)
+        total_count = question_count
         score = self.calculate_score(correct_count, total_count)
 
         print(
