@@ -36,10 +36,17 @@ def get_valid_text(prompt):
 
 # Quiz class
 class Quiz:
-    def __init__(self, question, choices, answer):
+    def __init__(self, question, choices, answer, hint=""):
         self.question = question
         self.choices = choices
         self.answer = answer
+        self.hint = hint
+
+    def show_hint(self):
+        if self.hint:
+            print(f"힌트: {self.hint}")
+        else:
+            print("이 퀴즈에는 힌트가 없습니다.")
 
     def display(self):
         print(self.question)
@@ -57,33 +64,7 @@ class QuizGame:
         self.state_file = Path(__file__).with_name("state.json")
         self.best_score = 0
 
-        self.quizzes = [
-            Quiz(
-                "조선시대부터 불리던 대전의 옛 이름으로, '큰밭'이라는 순우리말에서 유래한 지명은 무엇인가요?",
-                ["누리밭", "한밭", "솔밭", "늘밭"],
-                2
-            ),
-            Quiz(
-                "대한민국 과학기술의 중심지 역할을 하는 대전의 대규모 연구개발 단지의 이름은 무엇인가요?",
-                ["대덕연구개발특구", "송도국제연구단지", "오송생명과학단지", "판교테크노밸리"],
-                1
-            ),
-            Quiz(
-                "1993년에 개최된 대전 엑스포의 공식 마스코트 이름은 무엇인가요?",
-                ["반다비", "수호랑", "꿈돌이", "호돌이"],
-                3
-            ),
-            Quiz(
-                "대전광역시를 구성하고 있는 자치구의 총 개수는 몇 개일까요?",
-                ["3개", "4개", "5개", "6개"],
-                3
-            ),
-            Quiz(
-                "대전역 및 중앙로 일원에서 개최되는 대표적인 여름 축제 이름은 무엇인가요?",
-                ["대전 한여름 음악제", "대전 0시 축제", "대전 불빛축제", "대전 사이언스 페스티벌"],
-                2
-            )
-        ]
+        self.quizzes = self.get_default_quizzes()
 
         self.load_state()
 
@@ -102,7 +83,8 @@ class QuizGame:
                 {
                     "question": quiz.question,
                     "choices": quiz.choices,
-                    "answer": quiz.answer
+                    "answer": quiz.answer,
+                    "hint": quiz.hint
                 }
                 for quiz in self.quizzes
             ]
@@ -146,6 +128,7 @@ class QuizGame:
                 question = item["question"]
                 choices = item["choices"]
                 answer = item["answer"]
+                hint = item.get("hint", "")
 
                 if (
                     not isinstance(question, str)
@@ -158,10 +141,11 @@ class QuizGame:
                     )
                     or type(answer) is not int
                     or not 1 <= answer <= 4
+                    or not isinstance(hint, str)
                 ):
                     raise ValueError("퀴즈 데이터 형식이 올바르지 않습니다.")
 
-                loaded_quizzes.append(Quiz(question, choices, answer))
+                loaded_quizzes.append(Quiz(question, choices, answer, hint))
 
             self.best_score = best_score
             self.quizzes = loaded_quizzes
@@ -182,27 +166,32 @@ class QuizGame:
             Quiz(
                 "조선시대부터 불리던 대전의 옛 이름으로, '큰밭'이라는 순우리말에서 유래한 지명은 무엇인가요?",
                 ["누리밭", "한밭", "솔밭", "늘밭"],
-                2
+                2,
+                "대전에 있는 '○○수목원', '○○대학교' 이름에도 쓰여요."
             ),
             Quiz(
                 "대한민국 과학기술의 중심지 역할을 하는 대전의 대규모 연구개발 단지의 이름은 무엇인가요?",
                 ["대덕연구개발특구", "송도국제연구단지", "오송생명과학단지", "판교테크노밸리"],
-                1
+                1,
+                "대전의 자치구 이름 중 하나가 들어가요."
             ),
             Quiz(
                 "1993년에 개최된 대전 엑스포의 공식 마스코트 이름은 무엇인가요?",
                 ["반다비", "수호랑", "꿈돌이", "호돌이"],
-                3
+                3,
+                "'미래의 꿈'을 담은 이름이에요."
             ),
             Quiz(
                 "대전광역시를 구성하고 있는 자치구의 총 개수는 몇 개일까요?",
                 ["3개", "4개", "5개", "6개"],
-                3
+                3,
+                "동구·중구·서구 말고도 2개가 더 있어요."
             ),
             Quiz(
                 "대전역 및 중앙로 일원에서 개최되는 대표적인 여름 축제 이름은 무엇인가요?",
                 ["대전 한여름 음악제", "대전 0시 축제", "대전 불빛축제", "대전 사이언스 페스티벌"],
-                2
+                2,
+                "하루가 시작되는 시각, 밤 12시와 관련 있어요."
             )
         ]
 
@@ -219,6 +208,7 @@ class QuizGame:
         )
 
         correct_count = 0
+        hint_count = 0
 
         # 퀴즈 순서를 랜덤하게 섞기
         shuffled_quizzes = random.sample(self.quizzes, question_count)
@@ -228,9 +218,22 @@ class QuizGame:
             quiz.display()
             print()
 
-            user_answer = get_valid_number(
-                "정답 번호를 입력하세요: ", 1, 4
-            )
+            hint_used = False
+
+            while True:
+                user_answer = get_valid_number(
+                    "정답 번호를 입력하세요 (힌트 보기: 0): ", 0, 4
+                )
+
+                if user_answer != 0:
+                    break
+
+                quiz.show_hint()
+
+                if quiz.hint and not hint_used:
+                    hint_used = True
+                    hint_count += 1
+                    print("힌트를 사용하여 10점이 차감됩니다.")
 
             if quiz.check_answer(user_answer):
                 print("정답입니다!")
@@ -243,10 +246,16 @@ class QuizGame:
         total_count = question_count
         score = self.calculate_score(correct_count, total_count)
 
+        penalty = hint_count * 10
+        score = max(score - penalty, 0)
+
         print(
             f"이번 점수: {score}점 "
             f"({total_count}문제 중 {correct_count}문제 정답입니다!)"
         )
+
+        if hint_count > 0:
+            print(f"힌트 사용: {hint_count}회 (-{penalty}점)")
 
         if score > self.best_score:
             self.best_score = score
@@ -267,6 +276,8 @@ class QuizGame:
             "정답 번호를 입력하세요 (1~4): ", 1, 4
         )
 
+        hint = input("힌트를 입력하세요 (없으면 Enter): ").strip()
+
         print("\n===== 입력 내용 확인 =====")
         print("질문:", question)
 
@@ -275,8 +286,9 @@ class QuizGame:
 
         print("입력한 정답 번호:", answer)
         print("정답 내용:", choices[answer - 1])
+        print("힌트:", hint if hint else "(없음)")
 
-        new_quiz = Quiz(question, choices, answer)
+        new_quiz = Quiz(question, choices, answer, hint)
         self.quizzes.append(new_quiz)
 
         print("\n새로운 퀴즈가 생성되었습니다!")
