@@ -223,3 +223,7 @@ __marimo__/
 state_backup.json
 state_temp.json
 docs/screenshots/Error_test_for_json.txt
+
+# 자동 백업 및 손상 파일 보관본 (실행 중 생성)
+state.json.bak
+state.json.broken
