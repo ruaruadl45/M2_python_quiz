@@ -12,6 +12,11 @@ def get_valid_number(prompt, min_value, max_value):
     while True:
         value = input(prompt).strip()
 
+        # 빈 입력(그냥 Enter)은 따로 안내 후 다시 입력받기
+        if not value:
+            print("입력값이 비어 있습니다. 숫자를 입력하세요.")
+            continue
+
         try:
             value = int(value)
 
@@ -337,6 +342,10 @@ class QuizGame:
 
     # 퀴즈 목록
     def show_quizzes(self):
+        if not self.quizzes:
+            print("\n등록된 퀴즈가 없습니다. 퀴즈를 먼저 추가해 주세요.")
+            return
+
         print("\n===== 퀴즈 목록 =====")
 
         for i, quiz in enumerate(self.quizzes, start=1):
@@ -436,6 +445,10 @@ class QuizGame:
 
         except EOFError:
             print("\n입력이 종료되어 프로그램을 종료합니다.")
+
+        # 정상 종료, Ctrl+C, 입력 종료 중 어떤 경우든 마지막에 한 번 저장
+        finally:
+            self.save_state()
 
 
 # 게임 실행
